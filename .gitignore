@@ -1,0 +1,8 @@
+screenshots/
+*.png
+.vscode/
+discord_api_token.txt
+timezone.json
+*.csv
+.venv/
+venv/
