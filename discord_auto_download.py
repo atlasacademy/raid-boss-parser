@@ -3,7 +3,7 @@ import os
 from datetime import timedelta
 import discord
 import aiohttp
-# import aiofiles
+import aiofiles
 from rashomon_screenshot_parse import parse_screenshot
 
 CHANNEL = "rashoumon-raid"
@@ -22,14 +22,15 @@ async def download_raid_screenshots(time, user, url, file_name):
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:
             if response.status == 200:
-                # async with aiofiles.open(f"screenshots/{file_name}", mode="wb") as file:
                 content = await response.read()
-                #     await file.write(content)
-                #     await file.flush()
-                # ocr_output = parse_screenshot(f"screenshots/{file_name}")
-                ocr_output = parse_screenshot(bytearray(content))
+                async with aiofiles.open(f"screenshots/{file_name}", mode="wb") as file:
+                    await file.write(content)
+                    await file.flush()
+                ocr_output = parse_screenshot(f"screenshots/{file_name}")
+                # ocr_output = parse_screenshot(bytearray(content))
                 with open("parsed_hp.csv", "a") as output_text:
                     output_text.write(f"{time}, {ocr_output}, {url}\n")
+                os.remove(f"screenshots/{file_name}")
 
 
 @client.event

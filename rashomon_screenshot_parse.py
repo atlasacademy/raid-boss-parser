@@ -18,9 +18,9 @@ def get_qp_from_text(text):
 
 
 def parse_screenshot(image, debug=False):
-    # image = cv2.imread(image)
-    image = np.asarray(image, dtype=np.uint8)
-    image = cv2.imdecode(image, cv2.IMREAD_UNCHANGED)
+    image = cv2.imread(image)
+    # image = np.asarray(image, dtype=np.uint8)
+    # image = cv2.imdecode(image, cv2.IMREAD_UNCHANGED)
     if image is None:
         raise Exception(f"OpenCV can't read {image}")
     # h, w, _ = image.shape
@@ -33,8 +33,8 @@ def parse_screenshot(image, debug=False):
 
     # hsv = cv2.cvtColor(cropped, cv2.COLOR_BGR2HSV)
     # It's easier to filter out white with BGR
-    lower_color = (165, 165, 165)
-    upper_color = (255, 255, 255)
+    lower_color = np.array([165, 165, 165])
+    upper_color = np.array([255, 255, 255])
     mask = cv2.inRange(cropped, lower_color, upper_color)
     # if debug:
     #     cv2.imwrite("2 mask.png", mask)
