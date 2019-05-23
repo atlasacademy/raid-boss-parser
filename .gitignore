@@ -7,3 +7,4 @@ timezone.json
 .venv/
 venv/
 parsed_hp.csv
+__pycache__/
