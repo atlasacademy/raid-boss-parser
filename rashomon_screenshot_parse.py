@@ -20,24 +20,30 @@ def parse_screenshot(image, debug=False):
     image = cv2.imread(image)
     if image is None:
         raise Exception(f"OpenCV can't read {image}")
+    # h, w, _ = image.shape
+    # if w == 1920 and h == 1080:
+    #     cropped = image[3:36, 1243:1527]
+    # else:
     cropped = image[100:138, 1375:1670]
     if debug:
         cv2.imwrite("1 cropped.png", cropped)
 
-    hsv = cv2.cvtColor(cropped, cv2.COLOR_BGR2HSV)
-    lower_color = (15, 30, 30)
-    upper_color = (30, 170, 170)
-    mask = cv2.inRange(hsv, lower_color, upper_color)
-    if debug:
-        cv2.imwrite("2 mask.png", mask)
-    filtered = cv2.bitwise_and(cropped, cropped, mask=mask)
-    if debug:
-        cv2.imwrite("3 filtered.png", filtered)
+    # hsv = cv2.cvtColor(cropped, cv2.COLOR_BGR2HSV)
+    # It's easier to filter out white with BGR
+    lower_color = (165, 165, 165)
+    upper_color = (255, 255, 255)
+    mask = cv2.inRange(cropped, lower_color, upper_color)
+    # if debug:
+    #     cv2.imwrite("2 mask.png", mask)
+    # filtered = cv2.bitwise_and(cropped, cropped, mask=mask)
+    # if debug:
+    #     cv2.imwrite("3 filtered.png", filtered)
 
-    gray = cv2.cvtColor(filtered, cv2.COLOR_BGR2GRAY)
-    if debug:
-        cv2.imwrite("4 gray.png", gray)
-    _, thres = cv2.threshold(gray, 65, 255, cv2.THRESH_BINARY_INV)
+    # gray = cv2.cvtColor(filtered, cv2.COLOR_BGR2GRAY)
+    # if debug:
+    #     cv2.imwrite("4 gray.png", gray)
+    # _, thres = cv2.threshold(gray, 65, 255, cv2.THRESH_BINARY_INV)
+    thres = cv2.bitwise_not(mask)
     if debug:
         cv2.imwrite("5 thres.png", thres)
 
