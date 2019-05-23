@@ -28,7 +28,7 @@ async def download_raid_screenshots(time, user, url, file_name):
                     await file.flush()
                 ocr_output = parse_screenshot(f"screenshots/{file_name}")
                 with open("parsed_hp.csv", "a") as output_text:
-                    output_text.write(f"{time:%Y-%m-%d %H:%M:%S}, {ocr_output}\n")
+                    output_text.write(f"{time:%Y-%m-%d %H:%M:%S}, {ocr_output}, {url}\n")
 
 
 @client.event
