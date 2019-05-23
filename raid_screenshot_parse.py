@@ -5,11 +5,12 @@ from datetime import datetime
 import pandas as pd
 import pandas.plotting._converter as pandacnv
 import matplotlib.pyplot as plt
-import pytesseract
-import cv2
+from rashomon_screenshot_parse import parse_screenshot
 
 HP = 60000000
 
+
+# atlasacademy/capy-drop-parser/fgo_mat_counter.py
 def get_qp_from_text(text):
     qp = 0
     power = 1
@@ -20,10 +21,11 @@ def get_qp_from_text(text):
 
     return qp
 
+
 if os.path.exists("manual_data.csv"):
     manual_data = pd.read_csv("manual_data.csv", parse_dates=["Time"])
 
-dict_df = {"File": [], "Time": [], "Kills":[]}
+dict_df = {"File": [], "Time": [], "Kills": []}
 
 file_list = os.listdir(f"screenshots")
 file_list = [f for f in file_list if f.lower().endswith(".jpg") or f.lower().endswith(".png")]
@@ -33,15 +35,7 @@ for file in file_list:
     time = datetime.strptime(time, "%Y%m%d-%H%M%S")
 
     path = f"screenshots/{file}"
-    image = cv2.imread(path)
-
-    h, w = image.shape[:-1]
-    cropped = image[97:160, 1350:1611]
-
-    gray = cv2.cvtColor(cropped, cv2.COLOR_BGR2GRAY)
-    _, thres = cv2.threshold(gray, 65, 255, cv2.THRESH_BINARY_INV)
-    ocr = pytesseract.image_to_string(thres, config='-l eng --oem 1 --psm 7 -c tessedit_char_whitelist=,0123456789')
-    ocr = get_qp_from_text(ocr)
+    ocr = parse_screenshot(path)
 
     if ocr != 0:
         dict_df["Time"].append(time)
@@ -99,7 +93,7 @@ fig2.savefig(file_name, dpi=200, bbox_inches='tight')
 #     subprocess.call(["/usr/local/bin/ect", file_name], stdout=f)
 
 avg_rate = raid_data["Kills"].iloc[-1] / (raid_data["Time"].iloc[-1] - raid_data["Time"].iloc[0]).total_seconds()
-time_to_kill = (HP - raid_data["Kills"].iloc[-1])/avg_rate
+time_to_kill = (HP - raid_data["Kills"].iloc[-1]) / avg_rate
 time_to_kill = pd.to_timedelta(time_to_kill, unit='s')
 
 print(f"Time to death: {time_to_kill}")
