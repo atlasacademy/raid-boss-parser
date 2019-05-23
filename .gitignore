@@ -6,3 +6,4 @@ timezone.json
 *.csv
 .venv/
 venv/
+parsed_hp.csv

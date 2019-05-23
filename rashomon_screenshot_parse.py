@@ -45,7 +45,6 @@ def parse_screenshot(image, debug=False):
     if debug:
         print(f"raw Tesseract text: {ocr_text}")
     ocr_text = get_qp_from_text(ocr_text)
-    print(ocr_text)
     return ocr_text
 
 
@@ -54,4 +53,5 @@ if __name__ == "__main__":
     arg_parser.add_argument("-i", "--image", required=True, help="Input image")
     arg_parser.add_argument("-d", "--debug", action='store_true', help="Write debug images")
     args = arg_parser.parse_args()
-    parse_screenshot(args.image, args.debug)
+    result = parse_screenshot(args.image, args.debug)
+    print(result)
