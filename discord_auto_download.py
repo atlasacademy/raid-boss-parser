@@ -3,7 +3,7 @@ import os
 from datetime import timedelta
 import discord
 import aiohttp
-import aiofiles
+# import aiofiles
 from rashomon_screenshot_parse import parse_screenshot
 
 CHANNEL = "rashoumon-raid"
@@ -22,13 +22,14 @@ async def download_raid_screenshots(time, user, url, file_name):
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:
             if response.status == 200:
-                async with aiofiles.open(f"screenshots/{file_name}", mode="wb") as file:
-                    content = await response.content.read()
-                    await file.write(content)
-                    await file.flush()
-                ocr_output = parse_screenshot(f"screenshots/{file_name}")
+                # async with aiofiles.open(f"screenshots/{file_name}", mode="wb") as file:
+                content = await response.read()
+                #     await file.write(content)
+                #     await file.flush()
+                # ocr_output = parse_screenshot(f"screenshots/{file_name}")
+                ocr_output = parse_screenshot(bytearray(content))
                 with open("parsed_hp.csv", "a") as output_text:
-                    output_text.write(f"{time:%Y-%m-%d %H:%M:%S}, {ocr_output}, {url}\n")
+                    output_text.write(f"{time}, {ocr_output}, {url}\n")
 
 
 @client.event
@@ -38,12 +39,11 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
-    if str(message.channel.name) == CHANNEL:
+    user = str(message.author.display_name)
+    if user == "Cereal" or str(message.channel.name) == CHANNEL:
         if message.attachments:
-            user = str(message.author.display_name)
             # time = message.created_at.replace(tzinfo=timezone.utc).astimezone(tz=None)
             # if user == USER:
-            # if user == "Cereal":
             created_time = message.created_at + timedelta(hours=-7)
             file_name = f"Screenshot_{created_time:%Y%m%d-%H%M%S}.png"
             for attachment in message.attachments:

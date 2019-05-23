@@ -1,5 +1,6 @@
 import re
 import argparse
+import numpy as np
 import cv2
 import pytesseract
 
@@ -17,7 +18,9 @@ def get_qp_from_text(text):
 
 
 def parse_screenshot(image, debug=False):
-    image = cv2.imread(image)
+    # image = cv2.imread(image)
+    image = np.asarray(image, dtype=np.uint8)
+    image = cv2.imdecode(image, cv2.IMREAD_UNCHANGED)
     if image is None:
         raise Exception(f"OpenCV can't read {image}")
     # h, w, _ = image.shape
