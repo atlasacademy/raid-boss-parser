@@ -1,18 +1,15 @@
 # import re
 import argparse
+import os
+from datetime import datetime, timedelta
 import numpy as np
 import cv2
 import pytesseract
 
+OUTPUT_FILE = "parsed_hp.csv"
 
 # atlasacademy/capy-drop-parser/fgo_mat_counter.py
-def get_qp_from_text(text):
-    # qp = 0
-    # power = 1
-    # re matches left to right so reverse the list to process lower orders of magnitude first.
-    # for match in re.findall('[0-9]+', text)[::-1]:
-    #     qp += int(match) * power
-    #     power *= 1000
+def get_numbers_from_text(text):
     number = [s for s in text if s.isdigit()]
     return "".join(number)
 
@@ -23,11 +20,11 @@ def parse_screenshot(image, debug=False):
     # image = cv2.imdecode(image, cv2.IMREAD_UNCHANGED)
     if image is None:
         raise Exception(f"OpenCV can't read {image}")
-    # h, w, _ = image.shape
-    # if w == 1920 and h == 1080:
-    #     cropped = image[3:36, 1243:1527]
-    # else:
-    cropped = image[132:169, 1400:1732]
+    h, w, _ = image.shape
+    if w == 770 and h == 157:
+        cropped = image[37:72, 342:674]
+    elif w == 2160 and h == 1440:
+        cropped = image[132:169, 1400:1732]
     if debug:
         cv2.imwrite("1 cropped.png", cropped)
 
@@ -53,7 +50,7 @@ def parse_screenshot(image, debug=False):
     ocr_text = pytesseract.image_to_string(thres, config='-l eng --oem 1 --psm 7')
     if debug:
         print(f"raw Tesseract text: {ocr_text}")
-    ocr_text = get_qp_from_text(ocr_text)
+    ocr_text = get_numbers_from_text(ocr_text)
     return ocr_text
 
 
@@ -61,6 +58,12 @@ if __name__ == "__main__":
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument("-i", "--image", required=True, help="Input image")
     arg_parser.add_argument("-d", "--debug", action='store_true', help="Write debug images")
+    arg_parser.add_argument("-a", "--append", action='store_true', help="Append output file")
     args = arg_parser.parse_args()
     result = parse_screenshot(args.image, args.debug)
+    if args.append:
+        created_time = os.path.basename(args.image).split(".")[0]
+        created_time = datetime.utcfromtimestamp(int(created_time)) + timedelta(hours=-7)
+        with open(OUTPUT_FILE, "a") as f:
+            f.write(f"{created_time}, {result}, {args.image}\n")
     print(result)
