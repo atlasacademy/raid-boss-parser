@@ -8,3 +8,7 @@ timezone.json
 venv/
 parsed_hp.csv
 __pycache__/
+/.idea
+/env
+/input
+/output
