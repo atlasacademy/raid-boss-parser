@@ -1,6 +1,6 @@
 import os
 # from datetime import timezone
-from datetime import timedelta
+from datetime import datetime, timedelta
 import discord
 import aiohttp
 import aiofiles
@@ -8,7 +8,10 @@ from rashomon_screenshot_parse import parse_screenshot
 
 CHANNEL = "rashoumon-raid"
 USER = "solution"
-OUTPUT_FILE = "parsed_hp.csv"
+OUTPUT_FILE = "historical_parse.csv"
+FROM_TIME = datetime(2019, 5, 23, 17)
+TO_TIME = datetime(2019, 5, 23, 17, 15)
+HISTORY_LIMIT = 200
 
 client = discord.Client()
 
@@ -37,18 +40,16 @@ async def download_raid_screenshots(time, user, url, file_name):
 @client.event
 async def on_ready():
     print(f"We have logged in as {client.user}")
+    for channel in client.get_all_channels():
+        if str(channel) == CHANNEL:
+            async for message in channel.history(limit=HISTORY_LIMIT):
+                created_time = message.created_at + timedelta(hours=-7)
+                print(created_time)
+                if message.attachments and FROM_TIME <= created_time <= TO_TIME:
+                    user = str(message.author.display_name)
+                    file_name = f"Screenshot_{created_time:%Y%m%d-%H%M%S}.png"
+                    for attachment in message.attachments:
+                        await download_raid_screenshots(created_time, user, attachment.url, file_name)
 
-
-@client.event
-async def on_message(message):
-    user = str(message.author.display_name)
-    if user == "Cereal" or str(message.channel.name) == CHANNEL:
-        if message.attachments:
-            # time = message.created_at.replace(tzinfo=timezone.utc).astimezone(tz=None)
-            # if user == USER:
-            created_time = message.created_at + timedelta(hours=-7)
-            file_name = f"Screenshot_{created_time:%Y%m%d-%H%M%S}.png"
-            for attachment in message.attachments:
-                await download_raid_screenshots(created_time, user, attachment.url, file_name)
 
 client.run(discord_api_token)
