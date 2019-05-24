@@ -44,7 +44,6 @@ async def on_ready():
         if str(channel) == CHANNEL:
             async for message in channel.history(limit=HISTORY_LIMIT):
                 created_time = message.created_at + timedelta(hours=-7)
-                print(created_time)
                 if message.attachments and FROM_TIME <= created_time <= TO_TIME:
                     user = str(message.author.display_name)
                     file_name = f"Screenshot_{created_time:%Y%m%d-%H%M%S}.png"
