@@ -7,14 +7,14 @@ import pytesseract
 
 # atlasacademy/capy-drop-parser/fgo_mat_counter.py
 def get_qp_from_text(text):
-    qp = 0
-    power = 1
+    # qp = 0
+    # power = 1
     # re matches left to right so reverse the list to process lower orders of magnitude first.
-    for match in re.findall('[0-9]+', text)[::-1]:
-        qp += int(match) * power
-        power *= 1000
-
-    return qp
+    # for match in re.findall('[0-9]+', text)[::-1]:
+    #     qp += int(match) * power
+    #     power *= 1000
+    number = [s for s in text if s.isdigit()]
+    return "".join(number)
 
 
 def parse_screenshot(image, debug=False):
@@ -27,7 +27,7 @@ def parse_screenshot(image, debug=False):
     # if w == 1920 and h == 1080:
     #     cropped = image[3:36, 1243:1527]
     # else:
-    cropped = image[100:138, 1375:1670]
+    cropped = image[132:169, 1400:1732]
     if debug:
         cv2.imwrite("1 cropped.png", cropped)
 
