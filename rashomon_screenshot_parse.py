@@ -30,7 +30,7 @@ def parse_screenshot(image, debug=False):
 
     # hsv = cv2.cvtColor(cropped, cv2.COLOR_BGR2HSV)
     # It's easier to filter out white with BGR
-    lower_color = np.array([160, 160, 160])
+    lower_color = np.array([163, 163, 163])
     upper_color = np.array([255, 255, 255])
     mask = cv2.inRange(cropped, lower_color, upper_color)
     # if debug:
