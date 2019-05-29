@@ -15,6 +15,7 @@ DAY_COLOR = {
     7: '#7f7f7f',
     1: '#e377c2'
 }
+TODAY = 7
 
 
 def mad(x):
@@ -99,7 +100,7 @@ def make_hp_all(df, output="hp_all.png", stacked=False):
     plt.style.use('seaborn')
     fig, ax = plt.subplots(figsize=(14, 7.5))
     update_time = datetime(2019, 1, 1)
-    for day in range(2, 7):
+    for day in range(2, TODAY+1):
         temp_idx = (df.iloc[:, 0] > datetime(2019, 5, 21 + day, 17, 1)) \
                 & (df.iloc[:, 0] < datetime(2019, 5, 21 + day + 1, 17, 1))
         temp_df = df[temp_idx]
@@ -130,7 +131,7 @@ def make_dps_all(df, output="dps_all.png", stacked=False):
     plt.style.use('seaborn')
     fig, ax = plt.subplots(figsize=(14, 7.5))
     update_time = datetime(2019, 1, 1)
-    for day in range(2, 7):
+    for day in range(2, TODAY+1):
         temp_idx = (df.iloc[:, 0] > datetime(2019, 5, 21 + day, 17, 1)) \
                 & (df.iloc[:, 0] < datetime(2019, 5, 21 + day + 1, 17, 1))
         temp_df = df[temp_idx]
@@ -166,7 +167,7 @@ if __name__ == "__main__":
     make_hp_all(data, "hp_all_stacked.png", stacked=True)
     make_dps_all(data)
     make_dps_all(data, "dps_all_stacked.png", stacked=True)
-    event_day = 6
+    event_day = TODAY
     # for event_day in range(2, 6):
     idx = (data.iloc[:, 0] > datetime(2019, 5, 21 + event_day, 17, 1)) \
             & (data.iloc[:, 0] < datetime(2019, 5, 21 + event_day + 1, 17, 1))
