@@ -65,5 +65,5 @@ if __name__ == "__main__":
         created_time = os.path.basename(args.image).split(".")[0]
         created_time = datetime.utcfromtimestamp(int(created_time)) + timedelta(hours=-7)
         with open(OUTPUT_FILE, "a") as f:
-            f.write(f"{created_time}, {result}, {args.image}\n")
+            f.write(f"{created_time},{result},{args.image}\n")
     print(result)
