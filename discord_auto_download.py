@@ -30,7 +30,7 @@ async def download_raid_screenshots(time, user, url, file_name):
                 ocr_output = parse_screenshot(f"screenshots/{file_name}")
                 # ocr_output = parse_screenshot(bytearray(content))
                 with open(OUTPUT_FILE, "a") as output_text:
-                    output_text.write(f"{time}, {ocr_output}, {url}\n")
+                    output_text.write(f"{time},{ocr_output},{url}\n")
                 os.remove(f"screenshots/{file_name}")
 
 
