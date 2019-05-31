@@ -7,6 +7,7 @@ import cv2
 import pytesseract
 
 OUTPUT_FILE = "parsed_hp.csv"
+BOSS_TEMPLATES_FOLDER = "boss templates"
 
 # atlasacademy/capy-drop-parser/fgo_mat_counter.py
 def get_numbers_from_text(text):
@@ -54,6 +55,30 @@ def parse_screenshot(image, debug=False):
     return ocr_text
 
 
+def parse_boss(image, debug=False):
+    image = cv2.imread(image)
+    if image is None:
+        raise Exception(f"OpenCV can't read {image}")
+    bosses_list = os.listdir(BOSS_TEMPLATES_FOLDER)
+    bosses = {}
+    for boss_file in bosses_list:
+        boss_img = cv2.imread(boss_file)
+        if boss_img is None:
+            raise Exception(f"OpenCV can't read f{boss_file}")
+        bosses[boss_file.split(".")[0]] = boss_img
+    chosen_value = 0
+    chosen_boss = ""
+    for b in bosses:
+        res = cv2.matchTemplate(image, bosses[b], cv2.TM_CCOEFF_NORMED)
+        _, max_val, _, _ = cv2.minMaxLoc(res)
+        if debug:
+            print(f"Boss: {b}, Matching value: {max_val}")
+        if max_val > chosen_value:
+            chosen_value = max_val
+            chosen_boss = boss
+    return chosen_boss
+
+
 if __name__ == "__main__":
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument("-i", "--image", required=True, help="Input image")
@@ -61,9 +86,10 @@ if __name__ == "__main__":
     arg_parser.add_argument("-a", "--append", action='store_true', help="Append output file")
     args = arg_parser.parse_args()
     result = parse_screenshot(args.image, args.debug)
+    boss = parse_boss(args.image, args.debug)
     if args.append:
         created_time = os.path.basename(args.image).split(".")[0]
         created_time = datetime.utcfromtimestamp(int(created_time)) + timedelta(hours=-7)
         with open(OUTPUT_FILE, "a") as f:
             f.write(f"{created_time},{result},{args.image}\n")
-    print(result)
+    print(result, boss)
