@@ -10,6 +10,10 @@ if __name__ == "__main__":
     if os.path.isfile(LAST_PARSED_FILE):
         last_parsed = int(open(LAST_PARSED_FILE, "r").read())
 
+    if not os.path.exists(OUTPUT_FILE):
+        with open (OUTPUT_FILE, "w") as f:
+            f.write("Pacific Time,HP,Screenshot")
+
     for file in sorted(os.listdir("input")):
         if not file.endswith(".png"):
             continue
@@ -21,7 +25,7 @@ if __name__ == "__main__":
         result = rashomon_screenshot_parse.parse_screenshot("input/" + file)
         created_time = datetime.utcfromtimestamp(int(created_timestamp)) + timedelta(hours=-7)
         with open(OUTPUT_FILE, "a") as f:
-            f.write(f"{created_time}, {result}, {file}\n")
+            f.write(f"{created_time},{result},{file}\n")
 
         with open(LAST_PARSED_FILE, "w+") as f:
             f.write(f"{created_timestamp}")
