@@ -12,7 +12,7 @@ if __name__ == "__main__":
 
     if not os.path.exists(OUTPUT_FILE):
         with open(OUTPUT_FILE, "w") as f:
-            f.write("China Standard Time,Boss,HP,Screenshot")
+            f.write("China Standard Time,Boss,HP,Screenshot\n")
 
     for file in sorted(os.listdir("input")):
         if not file.endswith(".png"):
