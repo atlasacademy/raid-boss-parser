@@ -11,8 +11,8 @@ if __name__ == "__main__":
         last_parsed = int(open(LAST_PARSED_FILE, "r").read())
 
     if not os.path.exists(OUTPUT_FILE):
-        with open (OUTPUT_FILE, "w") as f:
-            f.write("Pacific Time,HP,Screenshot")
+        with open(OUTPUT_FILE, "w") as f:
+            f.write("China Standard Time,Boss,HP,Screenshot")
 
     for file in sorted(os.listdir("input")):
         if not file.endswith(".png"):
@@ -22,10 +22,11 @@ if __name__ == "__main__":
         if not int(created_timestamp) > last_parsed:
             continue
 
-        result = rashomon_screenshot_parse.parse_screenshot("input/" + file)
-        created_time = datetime.utcfromtimestamp(int(created_timestamp)) + timedelta(hours=-7)
+        result = rashomon_screenshot_parse.parse_apocrypha("input/" + file)
+        created_time = datetime.utcfromtimestamp(int(created_timestamp)) + timedelta(hours=8)
         with open(OUTPUT_FILE, "a") as f:
-            f.write(f"{created_time},{result},{file}\n")
+            for boss in result:
+                f.write(f'{created_time},{boss["boss"]},{boss["hp"]},{file}\n')
 
         with open(LAST_PARSED_FILE, "w+") as f:
             f.write(f"{created_timestamp}")
