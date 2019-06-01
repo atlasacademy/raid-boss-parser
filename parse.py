@@ -26,7 +26,7 @@ if __name__ == "__main__":
         created_time = datetime.utcfromtimestamp(int(created_timestamp)) + timedelta(hours=8)
         with open(OUTPUT_FILE, "a") as f:
             for boss in result:
-                f.write(f'{created_time},{boss["boss"]},{boss["hp"]},{file}\n')
+                f.write(f'{created_time},{boss["boss"]},{boss["hp"]},https://assets.atlasacademy.io/raid/{file}\n')
 
         with open(LAST_PARSED_FILE, "w+") as f:
             f.write(f"{created_timestamp}")
