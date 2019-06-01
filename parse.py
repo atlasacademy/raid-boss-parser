@@ -25,6 +25,8 @@ if __name__ == "__main__":
         result = rashomon_screenshot_parse.parse_apocrypha("input/" + file)
         created_time = datetime.utcfromtimestamp(int(created_timestamp)) + timedelta(hours=8)
         with open(OUTPUT_FILE, "a") as f:
+            if not result:
+                f.write(f'{created_time},,,https://assets.atlasacademy.io/raid/{file}\n')
             for boss in result:
                 f.write(f'{created_time},{boss["boss"]},{boss["hp"]},https://assets.atlasacademy.io/raid/{file}\n')
 
