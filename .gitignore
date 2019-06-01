@@ -12,3 +12,4 @@ __pycache__/
 /env
 /input
 /output
+!open sign.png
