@@ -59,6 +59,7 @@ def parse_hp(image, debug=False):
 def parse_boss(image, debug=False):
     image = image[:, :104]
     bosses_list = os.listdir(BOSS_TEMPLATES_FOLDER)
+    bosses_list = [b for b in bosses_list if not b in [".gitignore"]]
     bosses = {}
     for boss_file in bosses_list:
         boss_img = cv2.imread(f"boss templates/{boss_file}")
