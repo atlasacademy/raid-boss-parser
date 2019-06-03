@@ -5,15 +5,20 @@ import pandas.plotting._converter as pandacnv
 import matplotlib.pyplot as plt
 
 # OUTPUT_FILE = "output/parsed_hp.csv"
-OUTPUT_FILE = "https://assets.atlasacademy.io/raid_output/parsed_hp.csv"
-DAY_COLOR = {
-    2: '#d62728',
-    3: '#9467bd',
-    4: '#1f77b4',
-    5: '#ff7f0e',
-    6: '#bcbd22',
-    7: '#7f7f7f',
-    1: '#e377c2'
+OUTPUT_FILE = "https://assets.atlasacademy.io/raid_output/apo/parsed_hp.csv"
+BOSS_COLOR = {
+    "Astolfo": "C0",
+    "Atalante": "C1",
+    "Avicebron": "C2",
+    "Frankenstein": "C3",
+    "Jack": "C4",
+    "Karna": "C5",
+    "Mordred": "C6",
+    "Semiramis": "C7",
+    "Siegfried": "C8",
+    "Spartacus": "C9",
+    "Vlad III": "r",
+    "William Shakespeare": "g"
 }
 TODAY = 7
 
@@ -22,28 +27,29 @@ def mad(x):
     return np.median(np.abs(x - np.median(x)))
 
 
-def import_data(csv_file, filter_window=7, filter_offset=3):
-    df = pd.read_csv(csv_file, parse_dates=[0], dtype={1: "Int64"}, na_values=" ")
+def clean_data(df, filter_window=7, filter_offset=3):
     df.columns = df.columns.str.strip()
     df = df.dropna()
     df = df.sort_values(df.columns[0])
     rolling_median = (
-        df.iloc[:, 1]
+        df.iloc[:, 2]
         .rolling(filter_window, center=True)
         .median()
         .fillna(method="ffill")
+        .fillna(method="bfill")
         .fillna(0)
     )
     rolling_mad = (
-        df.iloc[:, 1]
+        df.iloc[:, 2]
         .rolling(filter_window, center=True)
         .apply(mad, raw=True)
         .fillna(method="ffill")
+        .fillna(method="bfill")
         .fillna(0)
     )
     lower_bound = rolling_median - filter_offset * rolling_mad
     upper_bound = rolling_median + filter_offset * rolling_mad
-    index = (lower_bound <= df.iloc[:, 1]) & (df.iloc[:, 1] <= upper_bound)
+    index = (lower_bound <= df.iloc[:, 2]) & (df.iloc[:, 2] <= upper_bound)
     df = df[index]
     return df
 
@@ -67,7 +73,7 @@ def make_hp_chart(df, day, output="hp.png"):
     pandacnv.register()
     plt.style.use('seaborn')
     fig, ax = plt.subplots(figsize=(14, 7.5))
-    ax.plot(x, y, color=DAY_COLOR[day])
+    ax.plot(x, y, color=BOSS_COLOR[day])
     fig.autofmt_xdate()
     update_time = x.iloc[-1]
     ax.set_title(f"Day {day} NA Rashomon raid HP - updated {update_time:%Y-%m-%d %H:%M} PST")
@@ -86,7 +92,7 @@ def make_dps_chart(df, day, output="dps.png"):
     pandacnv.register()
     plt.style.use('seaborn')
     fig, ax = plt.subplots(figsize=(14, 7.5))
-    ax.plot(x, y, color=DAY_COLOR[day], marker='o', markersize=3, linestyle="None")
+    ax.plot(x, y, color=BOSS_COLOR[day], marker='o', markersize=3, linestyle="None")
     fig.autofmt_xdate()
     update_time = x.iloc[-1]
     ax.set_title(f"Day {day} NA Rashomon raid DPS - updated {update_time:%Y-%m-%d %H:%M} PST")
@@ -95,86 +101,62 @@ def make_dps_chart(df, day, output="dps.png"):
     fig.savefig(output, dpi=200, bbox_inches='tight')
 
 
-def make_hp_all(df, output="hp_all.png", stacked=False):
+def make_hp_all(boss_dict, output="hp_all.png"):
     pandacnv.register()
     plt.style.use('seaborn')
     fig, ax = plt.subplots(figsize=(14, 7.5))
     update_time = datetime(2019, 1, 1)
-    for day in range(2, TODAY+1):
-        temp_idx = (df.iloc[:, 0] > datetime(2019, 5, 21 + day, 17, 1)) \
-                & (df.iloc[:, 0] < datetime(2019, 5, 21 + day + 1, 17, 1))
-        temp_df = df[temp_idx]
+    for boss in boss_dict:
+        temp_df = boss_dict[boss]
         # Decreasing HP only
         for _ in range(5):
-            temp_df = temp_df[temp_df.iloc[:, 1] >= temp_df.iloc[:, 1].shift(-1).fillna(0)]
+            temp_df = temp_df[temp_df.iloc[:, 2] >= temp_df.iloc[:, 2].shift(-1).fillna(0)]
         x = temp_df.iloc[:, 0]
         if x.iloc[-1] > update_time:
             update_time = x.iloc[-1]
-        if stacked:
-            x = x - datetime(2019, 5, 21 + day, 17)
-            x = x.dt.total_seconds() / 3600
-        y = temp_df.iloc[:, 1] / 1000000000000
-        ax.plot(x, y, label=f"Day {day}", color=DAY_COLOR[day])
+        y = temp_df.iloc[:, 2] / 1000
+        ax.plot(x, y, label=boss, color=BOSS_COLOR[boss])
     fig.autofmt_xdate()
-    ax.set_title(f"NA Rashomon raid HP - updated {update_time:%Y-%m-%d %H:%M} PST")
-    if stacked:
-        ax.set_xlabel("Time since day start (hours)")
-    else:
-        ax.set_xlabel("Pacific Standard Time")
-    ax.set_ylabel("HP (trillions)")
+    ax.set_title(f"CN Apocrypha raid HP - updated {update_time:%Y-%m-%d %H:%M} GMT+8")
+    ax.set_xlabel("China Standard Time (GMT+8)")
+    ax.set_ylabel("HP (thousands)")
+    ax.set_yticklabels(['{:,}'.format(int(x)) for x in ax.get_yticks().tolist()])
     ax.legend()
     fig.savefig(output, dpi=200, bbox_inches='tight')
 
 
-def make_dps_all(df, output="dps_all.png", stacked=False):
+def make_dps_all(boss_dict, output="dps_all.png", stacked=False):
     pandacnv.register()
     plt.style.use('seaborn')
     fig, ax = plt.subplots(figsize=(14, 7.5))
     update_time = datetime(2019, 1, 1)
-    for day in range(2, TODAY+1):
-        temp_idx = (df.iloc[:, 0] > datetime(2019, 5, 21 + day, 17, 1)) \
-                & (df.iloc[:, 0] < datetime(2019, 5, 21 + day + 1, 17, 1))
-        temp_df = df[temp_idx]
+    for boss in boss_dict:
+        temp_df = boss_dict[boss]
         # Decreasing HP only
         for _ in range(5):
-            temp_df = temp_df[temp_df.iloc[:, 1] >= temp_df.iloc[:, 1].shift(-1).fillna(0)]
+            temp_df = temp_df[temp_df.iloc[:, 2] >= temp_df.iloc[:, 2].shift(-1).fillna(0)]
         x = temp_df.iloc[1:, 0]
-        y = temp_df.iloc[:, 1].diff()[1:] / temp_df.iloc[:, 0].diff().dt.total_seconds()[1:]
+        y = temp_df.iloc[:, 2].diff()[1:] / temp_df.iloc[:, 0].diff().dt.total_seconds()[1:]
         x = x[y <= 0]
         y = y[y <= 0]
         y = y.rolling(4, center=True).mean()
-        y = -y/1000000
+        y = -y
         if x.iloc[-1] > update_time:
             update_time = x.iloc[-1]
-        if stacked:
-            x = x - datetime(2019, 5, 21 + day, 17)
-            x = x.dt.total_seconds() / 3600
-        ax.plot(x, y, label=f"Day {day}", color=DAY_COLOR[day], marker='o', markersize=3, linestyle="None")
+        ax.plot(x, y, label=boss, color=BOSS_COLOR[boss], marker='o', markersize=3, linestyle="None")
     fig.autofmt_xdate()
-    ax.set_title(f"NA Rashomon raid DPS - updated {update_time:%Y-%m-%d %H:%M} PST")
-    if not stacked:
-        ax.set_xlabel("Time since day start (hours)")
-    else:
-        ax.set_xlabel("Pacific Standard Time")
-    ax.set_ylabel("DPS (millions)")
+    ax.set_title(f"CN Apocrypha raid KPS - updated {update_time:%Y-%m-%d %H:%M} GMT+8")
+    ax.set_xlabel("China Standard Time (GMT+8)")
+    ax.set_ylabel("KPS")
     ax.legend()
     fig.savefig(output, dpi=200, bbox_inches='tight')
 
 
 if __name__ == "__main__":
-    data = import_data(OUTPUT_FILE)
-    make_hp_all(data)
-    make_hp_all(data, "hp_all_stacked.png", stacked=True)
-    make_dps_all(data)
-    make_dps_all(data, "dps_all_stacked.png", stacked=True)
-    event_day = TODAY
-    # for event_day in range(2, 6):
-    idx = (data.iloc[:, 0] > datetime(2019, 5, 21 + event_day, 17, 1)) \
-            & (data.iloc[:, 0] < datetime(2019, 5, 21 + event_day + 1, 17, 1))
-    day_data = data[idx]
-    # Decreasing HP only
-    for _ in range(5):
-        day_data = day_data[day_data.iloc[:, 1] >= day_data.iloc[:, 1].shift(-1).fillna(0)]
-    rate, time_finish, time_left = calculate_eta(day_data)
-    make_hp_chart(day_data, event_day, f"hp_day_{event_day}.png")
-    make_dps_chart(day_data, event_day, f"dps_day_{event_day}.png")
+    all_df = pd.read_csv(OUTPUT_FILE, parse_dates=[0], dtype={"HP": "Int64"}, na_values=" ")
+    bosses = sorted(list(all_df["Boss"].dropna().unique()))
+    all_df_dict = {}
+    for servant in bosses:
+        all_df_dict[servant] = clean_data(all_df[all_df["Boss"] == servant])
+    make_hp_all(all_df_dict)
+    make_dps_all(all_df_dict)
