@@ -12,7 +12,7 @@ if __name__ == "__main__":
 
     if not os.path.exists(OUTPUT_FILE):
         with open(OUTPUT_FILE, "w") as f:
-            f.write("Pacific Daylight Time,HP,Screenshot\n")
+            f.write("Pacific Time,HP,Screenshot\n")
 
     for file in sorted(os.listdir("input")):
         if not file.endswith(".png"):
@@ -22,7 +22,7 @@ if __name__ == "__main__":
         if not int(created_timestamp) > last_parsed:
             continue
 
-        result = screenshot_parse.parse_hp("input/" + file)
+        result = screenshot_parse.parse_onigashima(f"input/{file}")
         created_time = datetime.utcfromtimestamp(int(created_timestamp)) + timedelta(hours=-7)
         with open(OUTPUT_FILE, "a") as f:
             if not result:

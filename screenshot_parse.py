@@ -26,7 +26,7 @@ def parse_hp(image, debug=False):
     # elif w == 2160 and h == 1440:
     #     cropped = image[132:169, 1400:1732]
     # elif w == 379 and h == 728:
-    cropped = image[76:108, 94:333]
+    cropped = image[33:50, 750:949]
     if debug:
         cv2.imwrite("1 cropped.png", cropped)
 
@@ -108,15 +108,23 @@ def parse_apocrypha(image, debug=False):
     return output
 
 
+def parse_onigashima(image, debug=False):
+    image = cv2.imread(image)
+    if image is None:
+        raise Exception(f"OpenCV can't read {image}")
+    return parse_hp(image, debug)
+
+
 if __name__ == "__main__":
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument("-i", "--image", required=True, help="Input image")
     arg_parser.add_argument("-d", "--debug", action='store_true', help="Write debug images")
     arg_parser.add_argument("-a", "--append", action='store_true', help="Append output file")
     args = arg_parser.parse_args()
-    result = parse_apocrypha(args.image, args.debug)
-    for boss in result:
-        print(f'{boss["boss"]}: {boss["hp"]}')
+    result = parse_onigashima(args.image, args.debug)
+    print(result)
+    # for boss in result:
+    #     print(f'{boss["boss"]}: {boss["hp"]}')
     # if args.append:
     #     created_time = os.path.basename(args.image).split(".")[0]
     #     created_time = datetime.utcfromtimestamp(int(created_time)) + timedelta(hours=-7)
