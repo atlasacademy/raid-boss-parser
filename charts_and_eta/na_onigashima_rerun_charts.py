@@ -3,8 +3,8 @@ import pandas as pd
 import pandas.plotting._converter as pandacnv
 import matplotlib.pyplot as plt
 
-OUTPUT_FILE = "output/rashomon_parsed_hp.csv"
-# OUTPUT_FILE = "https://assets.atlasacademy.io/raid_output/apo/parsed_hp.csv"
+# OUTPUT_FILE = "output/rashomon_parsed_hp.csv"
+OUTPUT_FILE = "https://assets.atlasacademy.io/raid_output/oni/parsed_hp.csv"
 BOSS_NAME = {
     0: "1st Gate: Kazakoemaru",
     1: "2nd Gate: Wazahamimaru",

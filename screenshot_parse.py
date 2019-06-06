@@ -26,7 +26,7 @@ def parse_hp(image, debug=False):
     # elif w == 2160 and h == 1440:
     #     cropped = image[132:169, 1400:1732]
     # elif w == 379 and h == 728:
-    cropped = image[33:50, 750:949]
+    cropped = image[110:146, 410:765]
     if debug:
         cv2.imwrite("1 cropped.png", cropped)
 
