@@ -3,7 +3,7 @@ import pandas as pd
 import pandas.plotting._converter as pandacnv
 import matplotlib.pyplot as plt
 
-# OUTPUT_FILE = "output/rashomon_parsed_hp.csv"
+# OUTPUT_FILE = "parsed_hp.csv"
 OUTPUT_FILE = "https://assets.atlasacademy.io/raid_output/oni/parsed_hp.csv"
 BOSS_NAME = {
     0: "1st Gate: Kazakoemaru",
@@ -14,6 +14,7 @@ BOSS_NAME = {
 BOSS_COLOR = {
     i: f"C{i}" for i in range(len(BOSS_NAME))
 }
+ETA_HISTORY = "output/eta_history.csv"
 
 
 def mad(x):
@@ -47,8 +48,10 @@ def clean_data(df, filter_window=7, filter_offset=3):
     return df
 
 
-def calculate_eta(df, average=200, output="eta.txt"):
+def calculate_eta(df, update_time, average=200, output="eta.txt"):
+    print(len(df))
     df = df.iloc[-1 * average - 1 :, :2]
+    print(len(df))
     avg_rate = -(df.iloc[-1, 1] - df.iloc[0, 1]) / (df.iloc[-1, 0] - df.iloc[0, 0]).total_seconds()
     remaining_time = df.iloc[-1, 1] / avg_rate
     remaining_time = pd.to_timedelta(remaining_time, unit="s")
@@ -57,6 +60,8 @@ def calculate_eta(df, average=200, output="eta.txt"):
     with open(f"output/{output}", "w") as f:
         f.write(f"DPS: {avg_rate:.0f}\n")
         f.write(f"ETA: {eta:%Y-%m-%d %H:%M:%S} UTC-7\n")
+    with open(ETA_HISTORY, "a") as f:
+        f.write(f"{update_time:%Y-%m-%d %H:%M:%S},{eta:%Y-%m-%d %H:%M:%S}\n")
     return avg_rate, eta, remaining_time
 
 
@@ -110,7 +115,7 @@ def make_hp_all(boss_dict, update_time, output="hp_all.png", stacked=False):
         y = temp_df["HP"] / (10**12)
         ax.plot(x, y, label=BOSS_NAME[boss], color=BOSS_COLOR[boss])
     fig.autofmt_xdate()
-    ax.set_title(f"NA Onigashima rerun raid HP - updated {update_time:%b-%d %H:%M} PDT")
+    ax.set_title(f"NA Onigashima rerun raid HP - updated {update_time:%b %d %H:%M} PDT")
     if stacked:
         ax.set_xlabel("Time since raid started (hours)")
     else:
@@ -141,7 +146,7 @@ def make_dps_all(boss_dict, update_time, output="dps_all.png", stacked=False):
             x = x.dt.total_seconds() / 3600
         ax.plot(x, y, label=BOSS_NAME[boss], color=BOSS_COLOR[boss], marker='o', markersize=3, linestyle="None")
     fig.autofmt_xdate()
-    ax.set_title(f"NA Onigashima rerun raid DPS - updated {update_time:%b-%d %H:%M} PDT")
+    ax.set_title(f"NA Onigashima rerun raid DPS - updated {update_time:%b %d %H:%M} PDT")
     if stacked:
         ax.set_xlabel("Time since raid started (hours)")
     else:
@@ -154,23 +159,26 @@ def make_dps_all(boss_dict, update_time, output="dps_all.png", stacked=False):
 if __name__ == "__main__":
     all_df = pd.read_csv(OUTPUT_FILE, parse_dates=[0], dtype={"HP": "Int64"}, na_values=" ")
     all_df = clean_data(all_df)
-    all_df.to_csv("cleaned.csv", index=False)
+    # all_df.to_csv("cleaned.csv", index=False)
 
     all_df_dict = {}
     raid_start_times = list(all_df["Pacific Time"][all_df["HP"].diff() > 5*10**12])
-    for i in range(len(raid_start_times) - 1):
-        from_time = raid_start_times[i]
-        end_time = raid_start_times[i+1]
-        all_df_dict[i] = all_df[(all_df["Pacific Time"] >= from_time) & (all_df["Pacific Time"] < end_time)]
-    current_boss = len(raid_start_times) - 1
-    all_df_dict[current_boss] = all_df[all_df["Pacific Time"] >= raid_start_times[-1]]
+    if not raid_start_times:
+        all_df_dict[0] = all_df
+        current_boss = 0
+    else:
+        for i in range(len(raid_start_times) - 1):
+            from_time = raid_start_times[i]
+            end_time = raid_start_times[i+1]
+            all_df_dict[i] = all_df[(all_df["Pacific Time"] >= from_time) & (all_df["Pacific Time"] < end_time)]
+        current_boss = len(raid_start_times) - 1
+        all_df_dict[current_boss] = all_df[all_df["Pacific Time"] >= raid_start_times[-1]]
 
     # for boss in all_df_dict:
     #     print(boss, len(all_df_dict[boss]), all_df_dict[boss].iloc[0, 0], all_df_dict[boss].iloc[-1, 0])
 
-    calculate_eta(all_df_dict[current_boss])
-
     last_record_time = all_df.iloc[-1, 0]
+    calculate_eta(all_df_dict[current_boss], last_record_time)
     make_hp_all(all_df_dict, last_record_time)
     make_hp_all(all_df_dict, last_record_time, "hp_all_stacked.png", True)
     make_dps_all(all_df_dict, last_record_time)

@@ -12,7 +12,7 @@ if __name__ == "__main__":
 
     if not os.path.exists(OUTPUT_FILE):
         with open(OUTPUT_FILE, "w") as f:
-            f.write("Pacific Time,HP,Screenshot\n")
+            f.write("Pacific Time,HP,Screenshot,Errors\n")
 
     for file in sorted(os.listdir("input")):
         if not file.endswith(".png"):
@@ -22,13 +22,13 @@ if __name__ == "__main__":
         if not int(created_timestamp) > last_parsed:
             continue
 
-        result = screenshot_parse.parse_onigashima(f"input/{file}")
+        result, error = screenshot_parse.parse_onigashima(f"input/{file}")
         created_time = datetime.utcfromtimestamp(int(created_timestamp)) + timedelta(hours=-7)
         with open(OUTPUT_FILE, "a") as f:
-            if not result:
-                f.write(f'{created_time},,https://assets.atlasacademy.io/raid/{file}\n')
+            if error:
+                f.write(f'{created_time},,https://assets.atlasacademy.io/raid/{file},{error}\n')
             else:
-                f.write(f'{created_time},{result},https://assets.atlasacademy.io/raid/{file}\n')
+                f.write(f'{created_time},{result},https://assets.atlasacademy.io/raid/{file},\n')
 
         with open(LAST_PARSED_FILE, "w+") as f:
             f.write(f"{created_timestamp}")

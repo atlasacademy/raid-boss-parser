@@ -111,8 +111,8 @@ def parse_apocrypha(image, debug=False):
 def parse_onigashima(image, debug=False):
     image = cv2.imread(image)
     if image is None:
-        raise Exception(f"OpenCV can't read {image}")
-    return parse_hp(image, debug)
+        return "", f"OpenCV can't read {image}"
+    return parse_hp(image, debug), None
 
 
 if __name__ == "__main__":
