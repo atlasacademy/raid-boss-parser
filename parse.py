@@ -28,7 +28,7 @@ if __name__ == "__main__":
             if not result:
                 f.write(f'{created_time},,https://assets.atlasacademy.io/raid/{file}\n')
             else:
-                f.write(f'{created_time},result,https://assets.atlasacademy.io/raid/{file}\n')
+                f.write(f'{created_time},{result},https://assets.atlasacademy.io/raid/{file}\n')
 
         with open(LAST_PARSED_FILE, "w+") as f:
             f.write(f"{created_timestamp}")
