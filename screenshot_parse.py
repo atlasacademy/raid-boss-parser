@@ -6,7 +6,7 @@ import cv2
 import pytesseract
 
 OUTPUT_FILE = "parsed_hp.csv"
-BOSS_TEMPLATES_FOLDER = "boss templates"
+APOC_BOSS_TEMPLATES_FOLDER = "templates/cn-apocrypha/bosses"
 
 
 def get_numbers_from_text(text):
@@ -56,9 +56,9 @@ def parse_hp(image, debug=False):
     return ocr_text
 
 
-def parse_boss(image, debug=False):
+def parse_apoc_boss(image, debug=False):
     image = image[:, :104]
-    bosses_list = os.listdir(BOSS_TEMPLATES_FOLDER)
+    bosses_list = os.listdir(APOC_BOSS_TEMPLATES_FOLDER)
     bosses_list = [b for b in bosses_list if b.endswith(".png")]
     bosses = {}
     for boss_file in bosses_list:
@@ -80,7 +80,7 @@ def parse_boss(image, debug=False):
 
 
 def parse_open(image, debug=False):
-    open_sign = cv2.imread("open sign.png")
+    open_sign = cv2.imread("templates/cn-apocrypha/open sign.png")
     res = cv2.matchTemplate(image, open_sign, cv2.TM_CCOEFF_NORMED)
     _, max_val, _, _ = cv2.minMaxLoc(res)
     if debug:
@@ -102,7 +102,7 @@ def parse_apocrypha(image, debug=False):
     for battle, battle_image in battles.items():
         if parse_open(battle_image, debug):
             battle_info = {}
-            battle_info["boss"] = parse_boss(battle_image, debug)
+            battle_info["boss"] = parse_apoc_boss(battle_image, debug)
             battle_info["hp"] = parse_hp(battle_image, debug)
             output.append(battle_info)
     return output
