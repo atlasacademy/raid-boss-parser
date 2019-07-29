@@ -1,7 +1,7 @@
 from datetime import datetime
 import numpy as np
 import pandas as pd
-import pandas.plotting._converter as pandacnv
+from pandas.plotting import register_matplotlib_converters
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 
@@ -91,7 +91,7 @@ def calculate_eta(df, update_time, average=1000, output="eta.txt"):
 def make_hp_chart(df, day, output="hp.png"):
     x = df["Pacific Time"]
     y = df["HP"] / 1000000000000
-    pandacnv.register()
+    register_matplotlib_converters()
     plt.style.use('seaborn')
     fig, ax = plt.subplots(figsize=(14, 7.5))
     ax.plot(x, y, color=BOSS_COLOR[day])
@@ -110,7 +110,7 @@ def make_dps_chart(df, day, output="dps.png"):
     y = y[y <= 0]
     y = y.rolling(4, center=True).mean()
     y = -y / 1000000
-    pandacnv.register()
+    register_matplotlib_converters()
     plt.style.use('seaborn')
     fig, ax = plt.subplots(figsize=(14, 7.5))
     ax.plot(x, y, color=BOSS_COLOR[day], marker='o', markersize=3, linestyle="None")
@@ -123,7 +123,7 @@ def make_dps_chart(df, day, output="dps.png"):
 
 
 def make_hp_all(boss_dict, update_time, output="hp_all.png", stacked=False):
-    pandacnv.register()
+    register_matplotlib_converters()
     plt.style.use('seaborn')
     if stacked:
         fig, ax = plt.subplots(figsize=(14, 7.5), dpi=200)
@@ -157,7 +157,7 @@ def make_hp_all(boss_dict, update_time, output="hp_all.png", stacked=False):
 
 
 def make_dps_all(boss_dict, update_time, output="dps_all.png", stacked=False):
-    pandacnv.register()
+    register_matplotlib_converters()
     plt.style.use('seaborn')
     if stacked:
         fig, ax = plt.subplots(figsize=(14, 7.5), dpi=200)
