@@ -15,7 +15,7 @@ if __name__ == "__main__":
             f.write("Pacific Time,Team,HP,Screenshot\n")
 
     for file in sorted(os.listdir("input")):
-        if not file.endswith(".png"):
+        if file[-3:].lower() not in ["jpg", "png"]:
             continue
 
         created_timestamp = os.path.basename(file).split(".")[0]
