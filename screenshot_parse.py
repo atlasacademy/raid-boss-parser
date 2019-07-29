@@ -20,7 +20,7 @@ def parse_hp(image, debug=False):
 
     # hsv = cv2.cvtColor(cropped, cv2.COLOR_BGR2HSV)
     # It's easier to filter out white with BGR
-    lower_color = (163, 163, 163)
+    lower_color = (155, 155, 155)
     upper_color = (255, 255, 255)
     mask = cv2.inRange(image, lower_color, upper_color)
     # if debug:
@@ -120,6 +120,8 @@ def parse_summer_race(image, debug=False):
             bottom = top + h
             hp_img = image[bottom:bottom+50, left-100:right]
             team_hp = parse_hp(hp_img, debug)
+            if team.endswith("_"):
+                team = team.replace("_", "")
             output.append({"name": team, "hp": team_hp})
     return output
 
