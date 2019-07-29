@@ -1,40 +1,28 @@
-# import re
 import argparse
 import os
-import numpy as np
+import pprint
 import cv2
 import pytesseract
 
 OUTPUT_FILE = "parsed_hp.csv"
 APOC_BOSS_TEMPLATES_FOLDER = "templates/cn-apocrypha/bosses"
+SUMMER_RACE_TEAMS_TEMPLATE = "templates/na-summer-race"
 
 
 def get_numbers_from_text(text):
-    number = [s for s in text if s.isdigit()]
-    return "".join(number)
+    digits = [s for s in text if s.isdigit()]
+    return "".join(digits)
 
 
 def parse_hp(image, debug=False):
-    # image = cv2.imread(image)
-    # image = np.asarray(image, dtype=np.uint8)
-    # image = cv2.imdecode(image, cv2.IMREAD_UNCHANGED)
-    # if image is None:
-    #     raise Exception(f"OpenCV can't read {image}")
-    # h, w, _ = image.shape
-    # if w == 770 and h == 157:
-    #     cropped = image[37:72, 342:674]
-    # elif w == 2160 and h == 1440:
-    #     cropped = image[132:169, 1400:1732]
-    # elif w == 379 and h == 728:
-    cropped = image[110:146, 410:765]
     if debug:
-        cv2.imwrite("1 cropped.png", cropped)
+        cv2.imwrite("1 cropped.png", image)
 
     # hsv = cv2.cvtColor(cropped, cv2.COLOR_BGR2HSV)
     # It's easier to filter out white with BGR
-    lower_color = np.array([163, 163, 163])
-    upper_color = np.array([255, 255, 255])
-    mask = cv2.inRange(cropped, lower_color, upper_color)
+    lower_color = (163, 163, 163)
+    upper_color = (255, 255, 255)
+    mask = cv2.inRange(image, lower_color, upper_color)
     # if debug:
     #     cv2.imwrite("2 mask.png", mask)
     # filtered = cv2.bitwise_and(cropped, cropped, mask=mask)
@@ -62,9 +50,9 @@ def parse_apoc_boss(image, debug=False):
     bosses_list = [b for b in bosses_list if b.endswith(".png")]
     bosses = {}
     for boss_file in bosses_list:
-        boss_img = cv2.imread(f"boss templates/{boss_file}")
+        boss_img = cv2.imread(os.path.join(APOC_BOSS_TEMPLATES_FOLDER, boss_file))
         if boss_img is None:
-            raise Exception(f"OpenCV can't read f{boss_file}")
+            raise Exception(f"OpenCV can't read {boss_file}")
         bosses[boss_file.split(".")[0]] = boss_img
     chosen_value = 0
     chosen_boss = ""
@@ -94,7 +82,7 @@ def parse_apocrypha(image, debug=False):
         raise Exception(f"OpenCV can't read {image}")
     battles = {}
     for i in range(1, 4):
-        battle = image[31 + (i - 1)*139:169 + (i - 1)*139, 2:378]
+        battle = image[31 + (i - 1) * 139:169 + (i - 1) * 139, 2:378]
         battles[i] = battle
         if debug:
             cv2.imwrite(f"battle {i}.png", battle)
@@ -108,26 +96,46 @@ def parse_apocrypha(image, debug=False):
     return output
 
 
+def parse_summer_race(image, debug=False):
+    image = cv2.imread(image)
+    if image is None:
+        return [{"name": "", "hp": ""}]
+    teams_list = [t for t in os.listdir(SUMMER_RACE_TEAMS_TEMPLATE) if t.endswith(".png")]
+    teams = {}
+    for team_template in teams_list:
+        team_img = cv2.imread(os.path.join(SUMMER_RACE_TEAMS_TEMPLATE, team_template))
+        if team_img is None:
+            raise Exception(f"OpenCV can't read {team_template}")
+        teams[team_template.split(".")[0]] = team_img
+    output = []
+    for team, team_img in teams.items():
+        res = cv2.matchTemplate(image, team_img, cv2.TM_CCOEFF_NORMED)
+        _, max_val, _, max_loc = cv2.minMaxLoc(res)
+        if debug:
+            print(f"Team: {team}, Matching value: {max_val}")
+        if max_val > 0.8:
+            left, top = max_loc
+            h, w = team_img.shape[:2]
+            right = left + w
+            bottom = top + h
+            hp_img = image[bottom:bottom+50, left-100:right]
+            team_hp = parse_hp(hp_img, debug)
+            output.append({"name": team, "hp": team_hp})
+    return output
+
+
 def parse_onigashima(image, debug=False):
     image = cv2.imread(image)
     if image is None:
-        return "", f"OpenCV can't read {image}"
-    return parse_hp(image, debug), None
+        return ""
+    return parse_hp(image, debug)
 
 
 if __name__ == "__main__":
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument("-i", "--image", required=True, help="Input image")
     arg_parser.add_argument("-d", "--debug", action='store_true', help="Write debug images")
-    arg_parser.add_argument("-a", "--append", action='store_true', help="Append output file")
     args = arg_parser.parse_args()
-    result = parse_onigashima(args.image, args.debug)
-    print(result)
-    # for boss in result:
-    #     print(f'{boss["boss"]}: {boss["hp"]}')
-    # if args.append:
-    #     created_time = os.path.basename(args.image).split(".")[0]
-    #     created_time = datetime.utcfromtimestamp(int(created_time)) + timedelta(hours=-7)
-    #     with open(OUTPUT_FILE, "a") as f:
-    #         f.write(f"{created_time},{result},{args.image}\n")
-    # print(result, boss)
+    result = parse_summer_race(args.image, args.debug)
+    pp = pprint.PrettyPrinter(indent=4)
+    pp.pprint(result)

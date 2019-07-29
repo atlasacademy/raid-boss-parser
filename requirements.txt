@@ -1,4 +1,2 @@
 pytesseract
 opencv-python-headless
-pandas
-matplotlib
