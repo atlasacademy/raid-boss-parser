@@ -118,7 +118,8 @@ def parse_summer_race(image, debug=False):
             h, w = team_img.shape[:2]
             right = left + w
             bottom = top + h
-            hp_img = image[bottom:bottom+50, left-100:right]
+            max_height = image.shape[0]
+            hp_img = image[bottom:min(bottom+50, max_height), max(left-100, 0):right]
             team_hp = parse_hp(hp_img, debug)
             if team.endswith("_"):
                 team = team.replace("_", "")
