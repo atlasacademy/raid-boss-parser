@@ -35,7 +35,7 @@ def parse_hp(image, debug=False, channel_sameness_check=True):
     #     print(f"Percent black: {percent_black:.5f}")
     if channel_sameness_check: #and percent_black > 0.2:
         colors = {i: image[:, :, i] for i in range(3)}
-        channel_sameness = 10
+        channel_sameness = 15
         max_addition = 255 - channel_sameness
         for color_x, img_color in colors.items():
             # Without the maximum and minium, the addition and subtraction wraps around 0 and 255
