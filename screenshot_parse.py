@@ -30,10 +30,10 @@ def parse_hp(image, debug=False, channel_sameness_check=True):
     thres = cv2.bitwise_not(thres)
     if debug:
         cv2.imwrite("2 thres.png", thres)
-    percent_black = np.sum(thres == 0) / thres.size
-    if debug:
-        print(f"Percent black: {percent_black:.5f}")
-    if percent_black > 0.2 and channel_sameness_check:
+    # percent_black = np.sum(thres == 0) / thres.size
+    # if debug:
+    #     print(f"Percent black: {percent_black:.5f}")
+    if channel_sameness_check: #and percent_black > 0.2:
         colors = {i: image[:, :, i] for i in range(3)}
         channel_sameness = 10
         max_addition = 255 - channel_sameness
