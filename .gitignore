@@ -13,3 +13,4 @@ __pycache__/
 /input
 /output
 !open sign.png
+.mypy_cache/
